@@ -1,7 +1,20 @@
 #map{
-    height:500px;
+    height:80%;
+    width:100%;
+    margin:0 auto;
+    margin-top: 50px;
 }
 header{
     text-align: center;
     margin: 0 auto;
+}
+
+body{
+    height:100%;
+    width:100%;
+}
+
+.mdl-layout__drawer-button{
+    color:black;
+
 }
