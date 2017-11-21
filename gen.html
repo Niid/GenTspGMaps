@@ -1,49 +1,103 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8">
     <title>Traveling Salesman</title>
     <!--Google Fonts-->
     <link rel="stylesheet" href="//fonts.googleapis.com/css?family=font1|font2|etc" type="text/css">
-    <!--Standard stylesheet-->
-    <link rel="stylesheet" href="./css/stylesheet.css" type="text/css">
     <!--Google Material Design Lite-->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.lime-light_green.min.css">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.lime-light_green.min.css">      
+    <!--Standard stylesheet-->
+    <link rel="stylesheet" href="./css/stylesheet.css" type="text/css">
     </head>
     <body>
-        <header class="mdl-layout__header">
+        <header id="header" class="mdl-layout__header">
                 <h1 class="mdl-layout-title">Genetic Algorithm - Traveling Salesman</h1>
         </header>
         
         <div id="menu" class="mdl-layout mdl-js-layout">
             <!--settings menu for the genetic algorithm, uses Material Design Lite framework-->
             <div class="mdl-layout__drawer">
-                    <span class="mdl-layout-title">Settings</span>
-                    
-                    
+                <span class="mdl-layout-title">Settings</span>
+
+                <div class="setting">
+                    <!-- Population size -->
+                    <form action="#">
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input id="popSize" class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="sample4">
+                            <label class="mdl-textfield__label" for="sample4">Population size</label>
+                            <span class="mdl-textfield__error">Input is not a number!</span>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="setting">
+                    <!-- Max gen -->
+                    <form action="#">
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input id="maxGen" class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="sample4">
+                            <label class="mdl-textfield__label" for="sample4">Max number of generations</label>
+                            <span class="mdl-textfield__error">Input is not a number!</span>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="setting">
+                    <!-- Mutation rate Slider -->
+                    <span class="mdl-switch__label">Mutation rate</span>
+                    <input id="mRate" class="mdl-slider mdl-js-slider" type="range"
+                           min="0" max="100" value="0" tabindex="0">
+                </div>
+                
+                <div class="setting">
+                    <!-- Mode switch -->
+                    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-mode">
+                        <input type="checkbox" id="switch-mode" class="mdl-switch__input" checked>
+                        <span class="mdl-switch__label">mode Rank/Roulette</span>
+                    </label>
+                </div>
+                <div class="setting">
+                    <!-- Elitism switch -->
+                    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-elitism">
+                        <input type="checkbox" id="switch-elitism" class="mdl-switch__input" checked>
+                        <span class="mdl-switch__label">Elitism</span>
+                    </label>
+                </div>
+                <div class="setting">
                     <!-- Start button -->
-                    <button id="start" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
-                            <i class="material-icons">play_arrow</i>
+                    <button id="start" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                        Start
                     </button>
-                  </div>
+                </div>
+            </div>
         </div>
 
+        
+        <!--chips to display best scores and current gen-->
+        <span id="cGen" class="mdl-chip">
+            <span class="mdl-chip__text">Generation :</span>
+        </span>
+        <span id="bScore" class="mdl-chip">
+            <span class="mdl-chip__text">Best score :</span>
+        </span>
+
         <main id="map" class="mdl-layout__content">
+           
             <!--Contains a map that uses Google Maps API-->
         </main>
 
-        <footer id="toastCreator" class="mdl-js-snackbar mdl-snackbar">
+        <div id="toastCreator" ref='mdl-js-snackbar' class="mdl-js-snackbar mdl-snackbar">
             <div class="mdl-snackbar__text"></div>
             <button class="mdl-snackbar__action" type="button"></button>
-        </footer>
+        </div>
     
 
 
 
     <!--Google Maps API-->
     <script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDpnQJI_cfn3U4iSbCSwdyQFqh8FYKoqE4"></script>
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnFJIXdBe5DB0kYAxr7cyxKxcViOsRi70"></script>
     <!--Google Material Design Lite scripts-->
     <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <!--JQuery scripts-->

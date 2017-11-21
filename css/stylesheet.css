@@ -1,20 +1,48 @@
 #map{
-    height:80%;
+    height: calc(100% - 150px);
     width:100%;
     margin:0 auto;
     margin-top: 50px;
+    z-index:1;
 }
-header{
+#header {
     text-align: center;
     margin: 0 auto;
+    height: 100px;
+    z-index: 1;
 }
 
-body{
-    height:100%;
-    width:100%;
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow:hidden;
 }
 
-.mdl-layout__drawer-button{
-    color:black;
+.mdl-layout__container {
+    height:90%;
+}
 
+#menu {
+    height: (100% - 100px);
+}
+
+#cGen {
+    position:fixed;
+    z-index: 10;
+    margin-top: 50px;
+    margin-right: 10px;
+    margin-left: 80%;
+}
+
+#bScore {
+    position: fixed;
+    z-index: 10;
+    margin-top: 50px;
+    margin-right: 10px;
+    margin-left: 90%;
+}
+
+.setting {
+    margin:0 auto;
+    margin-top:20px;
 }

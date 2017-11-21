@@ -1,5 +1,6 @@
 var cities = [];
 
+var population = [];
 var currentGen;
 var currentBest;
 var best, bestScore;
@@ -7,6 +8,20 @@ var scores;
 //Google API map
 var map;
 
+
+//Start GA
+
+function startGA(popsize, maxGen, mRate, mode, elitism) {
+    /*console.log(popsize);
+    console.log(maxGen);
+    console.log(mRate);
+    console.log(mode);
+    console.log(elitism);*/
+
+
+}
+
+///////////END OF GA///////////////
 //add or remove a city simply by clicking on the map
 function placeMarker(position, map) {
     //no more than X cities, here 10
@@ -20,13 +35,13 @@ function placeMarker(position, map) {
           //can bug if 2 markers are at the exact same position, but shouldn't happen.
           //please tell me it won't...
           //if clicked
-          marker.addListener("click",function(e){
-              //remove marker from the cities array
-              for (var i=0; i<cities.length; i++) {
+        marker.addListener("click", function (e) {
+            //remove marker from the cities array
+            for (var i = 0; i < cities.length; i++) {
                 if (cities[i].getPosition().equals(marker.getPosition())) {
-                    cities.splice(i,1);
-                    }
+                    cities.splice(i, 1);
                 }
+            }
               //remove marker from map
               marker.setMap(null);
           });
@@ -42,7 +57,9 @@ function placeMarker(position, map) {
     else{
         //if there is too many cities, alert the user.
         //alert("please delete a city first !");
-        $("#toastCreator").MaterialSnackBar.showSnackbar("please delete a city first !");
+        document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
+            message: "please delete a city first !"
+        });
     }
 };
 
@@ -58,6 +75,7 @@ function initMap() {
     map.addListener ('click', function(e) {
         placeMarker(e.latLng, map);
     });
+    map.setOptions({ draggableCursor: 'default' });
 };
 
 $( document ).ready(function() {
@@ -65,6 +83,19 @@ $( document ).ready(function() {
     //init map.
     initMap();
 
+    $("#start").bind("click", function (e) {
+        if ($("#popSize").val() == undefined || $("#maxGen").val() == undefined || $("#popSize").val() == '' || $("#maxGen").val() == '' || cities.length < 2) {
+            document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
+                message: "please fill population size and max number of generations. Please put at least 2 markers on the map."
+            });
+        }
+        else {
+            document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
+                message: "start"
+            });
+            startGA($("#popSize").val(), $("#maxGen").val(), $("#mRate").val(), $("#switch-mode").is(':checked'), $("#switch-elitism").is(':checked'));
+        }
+    });
     console.log(map);
     console.log("map");
     // This event listener calls addMarker() when the map is clicked.
