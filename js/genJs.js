@@ -1,6 +1,8 @@
+//array of Markers, representing a city
 var cities = [];
 
 var population = [];
+var chrScores = [];
 var currentGen;
 var currentBest;
 var best, bestScore;
@@ -17,10 +19,48 @@ function startGA(popsize, maxGen, mRate, mode, elitism) {
     console.log(mRate);
     console.log(mode);
     console.log(elitism);*/
+    makeFirstGen(popsize);
 
+    for (var i = 1; i <= maxGen; i++) {
+        //update visuals
+        $("#cGenTxt").text("Generation : " + i);
 
+        //get scores - no time to update visuals :/
+        evaluate();
+    }
+    console.log(population);
+    console.log(chrScores);
 }
 
+function makeFirstGen(popsize) {
+    for (var i = 0; i < popsize; i++) {
+        var chromosome = [];
+        chromosome.push(0);
+        for (var j = 0; j < cities.length-1; j++) {
+            var selected = Math.floor((Math.random() * (cities.length)));
+            if (chromosome.includes(selected)) {
+                while (chromosome.includes(selected)) {
+                    selected = Math.floor((Math.random() * (cities.length)));
+                }
+            }
+            chromosome.push(selected);
+        }
+        chromosome.push(0);
+        population.push(chromosome);
+    }
+}
+
+function evaluate() {
+    chrScores = [];
+    for (var i = 0; i < population.length;i++){
+        var chromosome = population[i];
+        var score = 0;
+        for (var j = 0; j < chromosome.length - 1; j++) {
+            score += google.maps.geometry.spherical.computeDistanceBetween(cities[chromosome[j]].getPosition(), cities[chromosome[j+1]].getPosition());
+        }
+        chrScores.push(score);
+    }
+}
 ///////////END OF GA///////////////
 //add or remove a city simply by clicking on the map
 function placeMarker(position, map) {
