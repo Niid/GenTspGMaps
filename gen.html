@@ -49,6 +49,13 @@
                     <input id="mRate" class="mdl-slider mdl-js-slider" type="range"
                            min="0" max="100" value="0" tabindex="0">
                 </div>
+
+                <div class="setting">
+                    <!-- Crossing probability Slider -->
+                    <span class="mdl-switch__label">Crossing probability</span>
+                    <input id="cProb" class="mdl-slider mdl-js-slider" type="range"
+                           min="0" max="100" value="0" tabindex="0">
+                </div>
                 
                 <div class="setting">
                     <!-- Mode switch -->
@@ -79,7 +86,7 @@
             <span id="cGenTxt" class="mdl-chip__text">Generation :</span>
         </span>
         <span id="bScore" class="mdl-chip">
-            <span class="mdl-chip__text">Best score :</span>
+            <span id="bScoreTxt" class="mdl-chip__text">Best score :</span>
         </span>
 
         <main id="map" class="mdl-layout__content">

@@ -1,65 +1,65 @@
 //array of Markers, representing a city
 var cities = [];
 
-var population = [];
-var elite;
-var currentScores = [];
-var sortedScores=[];
-var displayPath;
-var currentGen;
-var currentBest;
+var population = [];//current population
+var elite;//current best
+var eliteScore;//current best score
+var currentScores = [];//current scores array
+var sortedScores=[];//current scores positions
+var currentGen;//current gen number
+var ctr;//gen counter
+
 //Google API map
-var map;
+var map;//whole world map
+var displayPath;//current polyline
 
 
 //Start GA
 
-function startGA(popsize, maxGen, mRate, mode, elitism) {
-    /*console.log(popsize);
-    console.log(maxGen);
-    console.log(mRate);
-    console.log(mode);
-    console.log(elitism);*/
+function startGA(popsize, maxGen, mRate,cProb, mode, elitism) {
     population = [];
     makeFirstGen(popsize);
+    ctr=0;
+    GA(popsize,maxGen,mRate,cProb,mode,elitism);
+    console.log(population);
+}
 
-    for (var i = 1; i <= maxGen+1; i++) {
-        //tout faire dans le setTimeout, sinon on perd les valeurs.
-        //setTimeout(function(){
-            //update visuals
-            $("#cGenTxt").text("Generation : " + i);
-            //get scores - no time to update visuals ? :/
-            currentScores = evaluate(1);
-            sortByScores();
+function GA(popsize,maxGen,mRate,cProb,mode,elitism){
 
-
-            ////DISPLAYBESTSCOREROUTE////
-            var bestRoute = [];
-            
-            //console.log(elite);
-            for(var j=0;j<elite.length;j++){
-                bestRoute.push(cities[elite[j]].getPosition());
-            }
-            if(displayPath != undefined){
-                displayPath.setMap(null);
-            }
-            displayPath = new google.maps.Polyline({
-                path: bestRoute,
-                geodesic: true,
-                strokeColor: '#FF0000',
-                strokeOpacity: 1.0,
-                strokeWeight: 2
-              });
-              displayPath.setMap(map);
-              ////ENDOFDISPLAYFUNCTION////
-      
-            var probCrois = 80;//crossing probability, should be set by user(slider)
-            mutate(popsize,mode,elitism,mRate,probCrois);
-       //},10);
-        
-    }
+    ctr++;
+    //update visuals
+    $("#cGenTxt").text("Generation : " + ctr);
+    $("#bScoreTxt").text("Best score: " +eliteScore);
+    currentGen=ctr;
     
+    
+    //get scores - no time to update visuals ? :/
+    currentScores = evaluate(1);
+    sortByScores();
 
+
+    ////DISPLAYBESTSCOREROUTE////
+    var bestRoute = [];
+    
+    for(var j=0;j<elite.length;j++){
+        bestRoute.push(cities[elite[j]].getPosition());
+    }
+    if(displayPath != undefined){
+        displayPath.setMap(null);
+    }
+    displayPath = new google.maps.Polyline({
+        path: bestRoute,
+        geodesic: true,
+        strokeColor: '#FF0000',
+        strokeOpacity: 1.0,
+        strokeWeight: 2
+      });
+      displayPath.setMap(map);
+      ////ENDOFDISPLAYFUNCTION////
+
+    mutate(popsize,mode,elitism,mRate,cProb);
+
+    if(ctr<maxGen) window.setTimeout(function(){GA(popsize,maxGen,mRate,cProb,mode,elitism)},10);
 }
 
 //creates first generation of GA
@@ -89,7 +89,7 @@ function evaluate(met) {
             var chromosome = population[i];
             var score = 0;
             for (var j = 0; j < chromosome.length - 1; j++) {
-                score += google.maps.geometry.spherical.computeDistanceBetween(cities[chromosome[j]].getPosition(), cities[chromosome[j+1]].getPosition());
+                score += Math.floor(google.maps.geometry.spherical.computeDistanceBetween(cities[chromosome[j]].getPosition(), cities[chromosome[j+1]].getPosition()));
             }
             chrScores.push(score);
         }
@@ -113,6 +113,7 @@ function sortByScores(){
         }
         if(sortedScores[i]==0){
             elite = population[i];
+            eliteScore = currentScores[i];
         }
     }
 }
@@ -120,65 +121,177 @@ function sortByScores(){
 //Mutation function
 function mutate(popsize,mode,elitism,mrate,probCrois){
     var newPop = [];
-    
+    //elitism
     if(elitism){
         newPop.push(elite);
     }
-    //while(newPop.length<popsize){
-        var parents = selectParents(mode,popsize);
-    console.log(parents);
-        //}
+
+    //select parents and cross
+    while(newPop.length<popsize){
+        //select parents
+        var parents = selectParents(mode);
+        //create new children
+        var children = crossParents(parents,probCrois);
+        //add children to new population
+        for(var i=0;i<children.length;i++){
+            newPop.push(children[i]);
+        }
+    }
+    //put out excess of population induced by elitism (should remove one child)
+    while(newPop.length>population.length){
+        newPop.pop();
+    }
+
+    //mutate the new population
+    mutateNewPop(newPop,mRate);
+
+    //accept new population
+    population = newPop;
+
 }
 
 //select parent chromosomes according to mode
-function selectParents(mode,popsize){
+function selectParents(mode){
     var p = [];
     var total=0;
     switch (mode){
         case false: //mode rank
-            
-            return p;
-            break;
+                var ranks = [];
+                var nbScores = sortedScores.length;
+                var noName = 2; //bottom of the division
+                for(var i=0;i<sortedScores.length;i++){
+                    noName=2;
+                    ranks.push(1/Math.pow(noName,sortedScores[i]+1));
+                }
+
+                var inc1=-1;
+                var inc2=-1;
+                var pos1=0;
+                var pos2=0;
+                pos1=Math.random();
+                pos2=Math.random();
+                for(var i=0;i<ranks.length;i++){
+                    if(pos1>0 && pos1-ranks[i]<=0){
+                        inc1=i;
+                        pos1=pos1-ranks[i];
+                    }else{
+                        pos1=pos1-ranks[i];
+                    }
+
+                    if(pos2>0 && pos2-ranks[i]<=0){
+                        inc2=i;
+                        pos2=pos2-ranks[i];
+                    }else{
+                        pos2=pos2-ranks[i];
+                    }
+                }
+
+                p.push(population[inc1]);
+                p.push(population[inc2]);
+                break;
         
-            case true://mode roulette
-            for(var i=0;i<currentScores.length;i++){
-                total = total + currentScores[i];
-            }
+            case true://mode roulette // seems broken...
+                for(var i=0;i<currentScores.length;i++){
+                    total = total + currentScores[i];
+                }
 
-            var inc1=-1;
-            var inc2=-1;
-            while(inc1=inc2){
-                inc1=-1;
-                inc2=-1;
+                var inc1=-1;
+                var inc2=-1;
                 //get where we stop in the roulette
-                var pos1 =(Math.random() * total);
-                var pos2 =(Math.random() * total);
-
+                var pos1=0;
+                var pos2=0;
+                pos1 =Math.floor(Math.random() * total);
+                pos2 =Math.floor(Math.random() * total);
                 //find the corresponding chromosomes
                 //push them in p
                 //return p
-                while(pos1 > 0){
-                    pos1=pos1-(currentScores[inc1]);
-                    inc1++;
+                for(var i=0;i<currentScores.length;i++){
+                    if(pos1>0 && pos1-currentScores[i]<=0){
+                        inc1=i;
+                        pos1=pos1-currentScores[i];
+                    }else{
+                        pos1=pos1-currentScores[i];
+                    }
+
+                    if(pos2>0 && pos2-currentScores[i]<=0){
+                        inc2=i;
+                        pos2=pos2-currentScores[i];
+                    }else{
+                        pos2=pos2-currentScores[i];
+                    }
                 }
-                while(pos2 > 0){
-                    pos2=pos2-(currentScores[inc2]);
-                    inc2++;
+                if(inc1>currentScores.length){
+                    inc1--;    
                 }
-            }
-            
-            p.push(population[inc1]);
-            p.push(population[inc2]);
-            return p;
-            break;
+                if(inc2>currentScores.length){
+                    inc2--;    
+                }
+                
+                p.push(population[inc1]);
+                p.push(population[inc2]);
+                
+                break;
     }
+
+    return p;
 }
 
+//cross parents to return children
+function crossParents(parents,probCrois){
+    var childs = [];
+    
+    if(Math.floor((Math.random() * 100)) < probCrois){
+        //cross parents - 
+        var crosspoint = Math.floor((Math.random()*parents[0].length));
+        var child1=[];
+        var child2=[];
+        //take everything from parent until crosspoint
+        for(var i=0;i<crosspoint;i++){
+            child1.push(parents[0][i]);
+            child2.push(parents[1][i]);
+        }
+        for(var j=0;j<parents[0].length;j++){
+            if(!(child1.includes(parents[1][j]))){
+                child1.push(parents[1][j]);
+            }
+            if(!(child2.includes(parents[0][j]))){
+                child2.push(parents[0][j]);
+            }
+        }
+        //push last city
+        child1.push(child1[0]);
+        child2.push(child2[0]);
+        //return childs
+        childs.push(child1);
+        childs.push(child2);
+    }
+    else{
+        //return parents without crossing
+        childs.push(parents[0]);
+        childs.push(parents[1]);
+    }
+    return childs;
+}
+
+
+//Mutate new population
+function mutateNewPop(newPop,mRate){
+    for(var i=0;i<newPop.length;i++){
+        if(Math.floor((Math.random() * 100))<mRate){
+            var pos1 = Math.floor((Math.random() * newPop[i].length));
+            var pos2 = Math.floor((Math.random() * newPop[i].length));
+            var buffer = newPop[i][pos1];
+            newPop[i][pos1]=newPop[i][pos2];
+            newPop[i][pos2] = buffer;
+        }
+    }
+    return newPop;
+}
 ///////////END OF GA///////////////
 //add or remove a city simply by clicking on the map
 function placeMarker(position, map) {
-    //no more than X cities, here 10
-    if(cities.length<10){
+    //no more than X cities, here 50
+    if(cities.length<50){
         //create new Marker
         var marker = new google.maps.Marker({
             position: position,
@@ -201,11 +314,6 @@ function placeMarker(position, map) {
           //add marker to cities array
           cities.push(marker);
 
-          /*console.log(cities);
-    for (var i=0; i<cities.length; i++) {
-        console.log(cities[i].position.lat());
-        console.log(cities[i].position.lng());
-        }*/
     }
     else{
         //if there is too many cities, alert the user.
@@ -244,12 +352,13 @@ $( document ).ready(function() {
         }
         else {
             document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
-                message: "start"
+                message: "Working ..."
             });
-            startGA($("#popSize").val(), $("#maxGen").val(), $("#mRate").val(), $("#switch-mode").is(':checked'), $("#switch-elitism").is(':checked'));
+            $('.mdl-layout__drawer').toggleClass('is-visible');
+            $('.mdl-layout__obfuscator').toggleClass('is-visible');
+            startGA($("#popSize").val(), $("#maxGen").val(), $("#mRate").val(),$("#cProb").val(), $("#switch-mode").is(':checked'), $("#switch-elitism").is(':checked'));
         }
     });
-    //console.log(map);
     // This event listener calls addMarker() when the map is clicked.
     
 });
