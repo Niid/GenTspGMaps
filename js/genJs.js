@@ -1,4 +1,4 @@
-//array of Markers, representing a city
+//array of Markers, each one representing a city
 var cities = [];
 
 var population = [];//current population
@@ -21,7 +21,7 @@ function startGA(popsize, maxGen, mRate,cProb, mode, elitism) {
     makeFirstGen(popsize);
     ctr=0;
     GA(popsize,maxGen,mRate,cProb,mode,elitism);
-    console.log(population);
+    //console.log(population);
 }
 
 function GA(popsize,maxGen,mRate,cProb,mode,elitism){
@@ -33,7 +33,8 @@ function GA(popsize,maxGen,mRate,cProb,mode,elitism){
     currentGen=ctr;
     
     
-    //get scores - no time to update visuals ? :/
+    //get scores
+    currentScores = [];
     currentScores = evaluate(1);
     sortByScores();
 
@@ -239,15 +240,17 @@ function selectParents(mode){
 //cross parents to return children
 function crossParents(parents,probCrois){
     var childs = [];
-    
     if(Math.floor((Math.random() * 100)) < probCrois){
-        //cross parents - 
-        var crosspoint = Math.floor((Math.random()*parents[0].length));
+        //cross parents
+        var crosspoint1 = Math.floor((Math.random()*parents[0].length));
+        var crosspoint2 = Math.floor((Math.random()*parents[0].length));
         var child1=[];
         var child2=[];
         //take everything from parent until crosspoint
-        for(var i=0;i<crosspoint;i++){
+        for(var i=0;i<crosspoint1;i++){
             child1.push(parents[0][i]);
+        }
+        for(var i=0;i<crosspoint2;i++){
             child2.push(parents[1][i]);
         }
         for(var j=0;j<parents[0].length;j++){
@@ -273,16 +276,24 @@ function crossParents(parents,probCrois){
     return childs;
 }
 
-
+//DOESNT WORK // TODO // TODO // TODO // TODO // TODO // TODO
 //Mutate new population
 function mutateNewPop(newPop,mRate){
     for(var i=0;i<newPop.length;i++){
-        if(Math.floor((Math.random() * 100))<mRate){
-            var pos1 = Math.floor((Math.random() * newPop[i].length));
-            var pos2 = Math.floor((Math.random() * newPop[i].length));
+        //console.log(mRate.value);
+        var rand = Math.floor((Math.random() * 100))
+        //console.log(rand);
+        if(rand<mRate.value){
+            //console.log("mutation !")
+            var pos1 = Math.floor((Math.random() * (newPop[i].length-1))+1);
+            var pos2 = Math.floor((Math.random() * (newPop[i].length-1))+1);
             var buffer = newPop[i][pos1];
-            newPop[i][pos1]=newPop[i][pos2];
-            newPop[i][pos2] = buffer;
+            //newPop[i][pos1]='';
+            //newPop[i][pos1]=newPop[i][pos2];
+            //newPop[i][pos1]='';
+            //newPop[i][pos2] = buffer;
+            //console.log(newPop[i][pos2]);
+            //console.log(newPop[i][pos1]);
         }
     }
     return newPop;
