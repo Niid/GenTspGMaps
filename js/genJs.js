@@ -21,6 +21,11 @@ var displayPath;//current polyline
 function startGA(popsize, maxGen, mRate, cProb, mode, elitism) {
     //initialzation
     population = [];
+
+    //update visuals
+    $("#cGenTxt").text("Generation : ");
+    $("#bScoreTxt").text("Best score: ");
+
     //create firs gen
     makeFirstGen(popsize);
     //initialize counters

@@ -32,8 +32,6 @@ html, body {
 
 .mdl-layout__drawer-button {
     background-color: #FFF;
-    border: 1px solid black;
-    border-radius: 50%;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
 }
 
@@ -48,8 +46,8 @@ html, body {
     margin-right: 10px;
     margin-left: 70%;
     background-color: #FFF;
-    border: 1px solid black;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+    border-radius: 0%;
 }
 
 #bScore {
@@ -59,8 +57,8 @@ html, body {
     margin-right: 10px;
     margin-left: 80%;
     background-color: #FFF;
-    border: 1px solid black;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+    border-radius: 0%;
 }
 
 .setting {
