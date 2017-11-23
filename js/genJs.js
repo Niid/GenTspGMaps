@@ -4,6 +4,9 @@ var cities = [];
 var population = [];//current population
 var elite;//current best
 var eliteScore;//current best score
+var oldEliteScore;//storage of the old elite score for comparison
+var eliteScoreGen;//generation where the best score hqs been found
+var eliteScoreGenCtr//counts for how many generations the best score has been the same
 var currentScores = [];//current scores array
 var sortedScores=[];//current scores positions
 var currentGen;//current gen number
@@ -14,18 +17,20 @@ var map;//whole world map
 var displayPath;//current polyline
 
 
-//Start GA
-
+//Genetic algorithm initialization
 function startGA(popsize, maxGen, mRate,cProb, mode, elitism) {
+    //initialzation
     population = [];
+    //create firs gen
     makeFirstGen(popsize);
+    //initialize counters
     ctr=0;
+    eliteScoreGenCtr=0;
+    //launch genetic algorithm
     GA(popsize,maxGen,mRate,cProb,mode,elitism);
-
-
-    
 }
 
+//Genetic algorithm: recursive function
 function GA(popsize,maxGen,mRate,cProb,mode,elitism){
 
     ctr++;
@@ -56,18 +61,36 @@ function GA(popsize,maxGen,mRate,cProb,mode,elitism){
         strokeColor: 'blue',
         strokeOpacity: 1.0,
         strokeWeight: 2
-      });
-      displayPath.setMap(map);
-      ////ENDOFDISPLAYFUNCTION////
+    });
+     displayPath.setMap(map);
+    ////ENDOFDISPLAYFUNCTION////
 
+    //mutate population (the rest of the GA is in there)
     mutate(popsize,mode,elitism,mRate,cProb);
 
-    if(ctr<maxGen) window.setTimeout(function(){GA(popsize,maxGen,mRate,cProb,mode,elitism)},10);
+    //if not finished, do one more turn
+    //window.setTimeout to let the DOM update, with variable speed
+    var speed=0;
+    //select speed
+    if(maxGen<=50) speed=100;
+    else if(maxGen>50 && maxGen<=100) speed = 50;
+    else speed=10;
+    //launch next turn
+    if(ctr<maxGen) window.setTimeout(function(){GA(popsize,maxGen,mRate,cProb,mode,elitism)},speed);
+    
     else{
-        //tell the user on finish
-    document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
-        message: "Finished !"
-    });
+        //end of algorithm, display scores
+        eliteScoreGen = currentGen-eliteScoreGenCtr;
+            //alert the user that the algorithm stopped
+        document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
+            message: "Finished !"
+        });
+        //alert user at which generation the last best score has been found
+        // /!\ may not be the best solution ever found, just the last best.
+        var msg = "Last best found on generation: " + eliteScoreGen;
+        document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
+            message: msg
+        });
     }
 }
 
@@ -75,34 +98,44 @@ function GA(popsize,maxGen,mRate,cProb,mode,elitism){
 function makeFirstGen(popsize) {
     for (var i = 0; i < popsize; i++) {
         var chromosome = [];
+        //first city is always 0
         chromosome.push(0);
-        for (var j = 0; j < cities.length-1; j++) {
+        //for each city
+        for (var j = 0; j < cities.length-1; j++) { //length -1 because we already added 0.
+            //select a random city
             var selected = Math.floor((Math.random() * (cities.length)));
-            if (chromosome.includes(selected)) {
-                while (chromosome.includes(selected)) {
-                    selected = Math.floor((Math.random() * (cities.length)));
-                }
+            //while city already seen
+            while (chromosome.includes(selected)) {
+                //select another
+                selected = Math.floor((Math.random() * (cities.length)));   
             }
+            //add selected city to chromosome
             chromosome.push(selected);
         }
+        //last city is always 0, since this is a loop. It could be done otherwise though...
         chromosome.push(0);
+        //add chromosome to population
         population.push(chromosome);
     }
 }
 
-//evaluation function - TODO: different methods
+//evaluation function - TODO: different methods ?
 function evaluate(met) {
     var chrScores = [];
+    //method 1 - Overall length
     if(met == 1){
         for (var i = 0; i < population.length;i++){
             var chromosome = population[i];
             var score = 0;
+            //get total length of the path (chromosome)
             for (var j = 0; j < chromosome.length - 1; j++) {
                 score += Math.floor(google.maps.geometry.spherical.computeDistanceBetween(cities[chromosome[j]].getPosition(), cities[chromosome[j+1]].getPosition()));
             }
+            //push the score of the path in an array of scores
             chrScores.push(score);
         }
     }
+    //return scores
     return chrScores;
 }
 
@@ -112,17 +145,37 @@ function sortByScores(){
     for (var i = 0; i < currentScores.length; i++) {
         sortedScores[i]=0;
         var val=currentScores[i];
+        //compare scores to every other score
         for (var j = 0; j < currentScores.length; j++) {
+            //if a score is better than the one we picked
             if(currentScores[j]<val && i!=j){
+                //increase the "position" ctr of the solution we are evaluating
                 sortedScores[i]=sortedScores[i]+1;
             }
+            //if the scores are the same, the first one is arbitrary declared worse.
             if(currentScores[j]==val && i<j){
                 sortedScores[i]=sortedScores[i]+1;
             }
         }
+
+        //Elite Score
         if(sortedScores[i]==0){
             elite = population[i];
+            //initialise the oldEliteScore buffer
+            if(oldEliteScore == undefined){
+                oldEliteScore=eliteScore;
+            }
+            //define current best score
             eliteScore = currentScores[i];
+            //if current best < old best reset ctr
+            if(eliteScore != oldEliteScore){
+                eliteScoreGenCtr = 0;
+                oldEliteScore=eliteScore;
+            }
+            //else if current best = old best increment ctr
+            else if(eliteScore == oldEliteScore){
+                eliteScoreGenCtr++;
+            }
         }
     }
 }
@@ -177,8 +230,11 @@ function selectParents(mode){
                 var inc2=-1;
                 var pos1=0;
                 var pos2=0;
-                pos1=Math.random();
-                pos2=Math.random();
+                while(pos1==pos2){
+                    pos1=Math.random();
+                    pos2=Math.random();
+                }
+                
                 for(var i=0;i<ranks.length;i++){
                     if(pos1>0 && pos1-ranks[i]<=0){
                         inc1=i;
@@ -209,8 +265,10 @@ function selectParents(mode){
                 //get where we stop in the roulette
                 var pos1=0;
                 var pos2=0;
-                pos1 =Math.floor(Math.random() * total);
-                pos2 =Math.floor(Math.random() * total);
+                while(pos1==pos2){
+                    pos1 =Math.floor(Math.random() * total);
+                    pos2 =Math.floor(Math.random() * total);
+                }
                 //find the corresponding chromosomes
                 //push them in p
                 //return p
@@ -261,6 +319,7 @@ function crossParents(parents,probCrois){
         for(var i=0;i<crosspoint2;i++){
             child2.push(parents[1][i]);
         }
+        //add the rest of the other parent after crosspoint
         for(var j=0;j<parents[0].length;j++){
             if(!(child1.includes(parents[1][j]))){
                 child1.push(parents[1][j]);
@@ -286,16 +345,26 @@ function crossParents(parents,probCrois){
 
 //Mutate new population
 function mutateNewPop(newPop,mRate){
+    //for each element of the newpopulation
     for(var i=0;i<newPop.length;i++){
+        //random to simulate the chance of mutation
         var rand = Math.floor((Math.random() * 100));
+        //if mutation then
         if(rand<mRate.value){
-            var pos1 = Math.floor((Math.random() * (newPop[i].length-2))+1);
-            var pos2 = Math.floor((Math.random() * (newPop[i].length-2))+1);
+            var pos1=0;
+            var pos2=0;
+            //choose two non identical positions
+            while(pos1==pos2){
+                pos1 = Math.floor((Math.random() * (newPop[i].length-2))+1);
+                pos2 = Math.floor((Math.random() * (newPop[i].length-2))+1);
+            }
+            //swap their contents
             var buffer = newPop[i][pos1];
             newPop[i][pos1]= newPop[i][pos2];
             newPop[i][pos2]=buffer;
         }
     }
+    //return new population modified
     return newPop;
 }
 ///////////END OF GA///////////////
@@ -326,15 +395,18 @@ function placeMarker(position, map) {
         }
         
           //add a click listener on the marker (to remove it later)
-          //can bug if 2 markers are at the exact same position, but shouldn't happen.
-          //please tell me it won't...
           //if clicked
         marker.addListener("click", function (e) {
             //remove marker from the cities array
             for (var i = 0; i < cities.length; i++) {
                 if (cities[i].getPosition().equals(marker.getPosition())) {
                     cities.splice(i, 1);
+                    //if first marker deleted color new first marker
+                    if(i==0 && cities[0] != undefined){
+                        cities[0].setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
+                    }
                 }
+                
             }
               //remove marker from map
               marker.setMap(null);
@@ -361,7 +433,7 @@ function initMap() {
     //center the map on grenoble, zoom is arbitrary
     var grenoble = {lat: 45.188529, lng: 5.724524};
     map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 10,
+      zoom: 8,
       center: grenoble,
       mapTypeControl: false,
       mapTypeId: google.maps.MapTypeId.TERRAIN,
@@ -380,22 +452,26 @@ $( document ).ready(function() {
     initMap();
 
     $("#start").bind("click", function (e) {
+        //if settings not filled correctly or not enough cities
         if ($("#popSize").val() == undefined || $("#maxGen").val() == undefined || $("#popSize").val() == '' || $("#maxGen").val() == '' || cities.length < 2) {
+            //display error
             document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
                 message: "please fill population size and max number of generations. Please put at least 2 markers on the map."
             });
         }
         else {
+            //alert the user that the algorithm starts
             document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
                 message: "Working ..."
             });
+            //hide drawer (and its obfuscator)
             $('.mdl-layout__drawer').toggleClass('is-visible');
             $('.mdl-layout__obfuscator').toggleClass('is-visible');
+            
+            //start
             startGA($("#popSize").val(), $("#maxGen").val(), $("#mRate").val(),$("#cProb").val(), $("#switch-mode").is(':checked'), $("#switch-elitism").is(':checked'));
         }
     });
-    // This event listener calls addMarker() when the map is clicked.
-    
 });
 
 
