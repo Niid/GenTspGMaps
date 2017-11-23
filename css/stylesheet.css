@@ -1,15 +1,19 @@
 #map{
-    height: calc(100% - 150px);
+    height: calc(100%);
     width:100%;
     margin:0 auto;
-    margin-top: 50px;
     z-index:1;
+
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
 }
 #header {
     text-align: center;
     margin: 0 auto;
     height: 100px;
-    z-index: 1;
+    z-index: 11;
+    background-image: url("../img/head.jpeg");
+    background-size: 100%;
+    vertical-align: center;
 }
 
 html, body {
@@ -19,30 +23,49 @@ html, body {
 }
 
 .mdl-layout__container {
-    height:90%;
+    height:100%;
+}
+
+.mdl-layout__drawer{
+    overflow: auto;
+}
+
+.mdl-layout__drawer-button {
+    background-color: #FFF;
+    border: 1px solid black;
+    border-radius: 50%;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
 }
 
 #menu {
-    height: (100% - 100px);
+    height: (100%);
 }
 
 #cGen {
     position:fixed;
-    z-index: 10;
-    margin-top: 50px;
+    z-index: 2;
+    margin-top: 10px;
     margin-right: 10px;
-    margin-left: 80%;
+    margin-left: 70%;
+    background-color: #FFF;
+    border: 1px solid black;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
 }
 
 #bScore {
     position: fixed;
-    z-index: 10;
-    margin-top: 50px;
+    z-index: 2;
+    margin-top: 10px;
     margin-right: 10px;
-    margin-left: 90%;
+    margin-left: 80%;
+    background-color: #FFF;
+    border: 1px solid black;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
 }
 
 .setting {
-    margin:0 auto;
-    margin-top:20px;
+    margin-top:10px;
+    padding:5px 5px 5px 5px;
 }
+
+

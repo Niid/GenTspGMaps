@@ -21,7 +21,9 @@ function startGA(popsize, maxGen, mRate,cProb, mode, elitism) {
     makeFirstGen(popsize);
     ctr=0;
     GA(popsize,maxGen,mRate,cProb,mode,elitism);
-    //console.log(population);
+
+
+    
 }
 
 function GA(popsize,maxGen,mRate,cProb,mode,elitism){
@@ -51,7 +53,7 @@ function GA(popsize,maxGen,mRate,cProb,mode,elitism){
     displayPath = new google.maps.Polyline({
         path: bestRoute,
         geodesic: true,
-        strokeColor: '#FF0000',
+        strokeColor: 'blue',
         strokeOpacity: 1.0,
         strokeWeight: 2
       });
@@ -61,6 +63,12 @@ function GA(popsize,maxGen,mRate,cProb,mode,elitism){
     mutate(popsize,mode,elitism,mRate,cProb);
 
     if(ctr<maxGen) window.setTimeout(function(){GA(popsize,maxGen,mRate,cProb,mode,elitism)},10);
+    else{
+        //tell the user on finish
+    document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
+        message: "Finished !"
+    });
+    }
 }
 
 //creates first generation of GA
@@ -276,24 +284,16 @@ function crossParents(parents,probCrois){
     return childs;
 }
 
-//DOESNT WORK // TODO // TODO // TODO // TODO // TODO // TODO
 //Mutate new population
 function mutateNewPop(newPop,mRate){
     for(var i=0;i<newPop.length;i++){
-        //console.log(mRate.value);
-        var rand = Math.floor((Math.random() * 100))
-        //console.log(rand);
+        var rand = Math.floor((Math.random() * 100));
         if(rand<mRate.value){
-            //console.log("mutation !")
-            var pos1 = Math.floor((Math.random() * (newPop[i].length-1))+1);
-            var pos2 = Math.floor((Math.random() * (newPop[i].length-1))+1);
+            var pos1 = Math.floor((Math.random() * (newPop[i].length-2))+1);
+            var pos2 = Math.floor((Math.random() * (newPop[i].length-2))+1);
             var buffer = newPop[i][pos1];
-            //newPop[i][pos1]='';
-            //newPop[i][pos1]=newPop[i][pos2];
-            //newPop[i][pos1]='';
-            //newPop[i][pos2] = buffer;
-            //console.log(newPop[i][pos2]);
-            //console.log(newPop[i][pos1]);
+            newPop[i][pos1]= newPop[i][pos2];
+            newPop[i][pos2]=buffer;
         }
     }
     return newPop;
@@ -301,13 +301,30 @@ function mutateNewPop(newPop,mRate){
 ///////////END OF GA///////////////
 //add or remove a city simply by clicking on the map
 function placeMarker(position, map) {
+
     //no more than X cities, here 50
     if(cities.length<50){
-        //create new Marker
-        var marker = new google.maps.Marker({
+        //remove drawn path if it exists
+        if(displayPath!=undefined){
+            displayPath.setMap(null);
+        }
+        if(cities.length==0){
+            //create first marker
+            var marker = new google.maps.Marker({
             position: position,
             map: map
-          });
+            });
+            marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
+        }
+        else{
+            //if not first
+            var marker = new google.maps.Marker({
+                position: position,
+                map: map
+            });
+            marker.setIcon('http://maps.google.com/mapfiles/ms/icons/blue-dot.png');
+        }
+        
           //add a click listener on the marker (to remove it later)
           //can bug if 2 markers are at the exact same position, but shouldn't happen.
           //please tell me it won't...
@@ -321,6 +338,10 @@ function placeMarker(position, map) {
             }
               //remove marker from map
               marker.setMap(null);
+              //remove drawn path if it exists
+              if(displayPath!=undefined){
+                displayPath.setMap(null);
+              }
           });
           //add marker to cities array
           cities.push(marker);
@@ -341,7 +362,10 @@ function initMap() {
     var grenoble = {lat: 45.188529, lng: 5.724524};
     map = new google.maps.Map(document.getElementById('map'), {
       zoom: 10,
-      center: grenoble
+      center: grenoble,
+      mapTypeControl: false,
+      mapTypeId: google.maps.MapTypeId.TERRAIN,
+      fullScreenControl:false
     });
     //add click listener to map to place markers and register cities
     map.addListener ('click', function(e) {
