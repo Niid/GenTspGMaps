@@ -2,8 +2,9 @@
 var cities = [];
 
 var population = [];//current population
-var elite;//current best
+var elite=[];//current best
 var eliteScore;//current best score
+var cookieBest;
 var oldEliteScore;//storage of the old elite score for comparison
 var eliteScoreGen;//generation where the best score hqs been found
 var eliteScoreGenCtr//counts for how many generations the best score has been the same
@@ -11,6 +12,7 @@ var currentScores = [];//current scores array
 var sortedScores = [];//current scores positions
 var currentGen;//current gen number
 var ctr;//gen counter
+var stop;
 
 //Google API map
 var map;//whole world map
@@ -18,7 +20,7 @@ var displayPath;//current polyline
 
 
 //Genetic algorithm initialization
-function startGA(popsize, maxGen, mRate, cProb, mode, elitism) {
+function startGA(popsize, maxGen, mRate, cProb, mode, elitism,eliteSize) {
     //initialzation
     population = [];
 
@@ -32,12 +34,12 @@ function startGA(popsize, maxGen, mRate, cProb, mode, elitism) {
     ctr = 0;
     eliteScoreGenCtr = 0;
     //launch genetic algorithm
-    GA(popsize, maxGen, mRate, cProb, mode, elitism);
+    GA(popsize, maxGen, mRate, cProb, mode, elitism,eliteSize);
 }
 
 //Genetic algorithm: recursive function
-function GA(popsize, maxGen, mRate, cProb, mode, elitism) {
-
+function GA(popsize, maxGen, mRate, cProb, mode, elitism,eliteSize) {
+    elite=[];
     ctr++;
     //update visuals
     $("#cGenTxt").text("Generation : " + ctr);
@@ -48,14 +50,14 @@ function GA(popsize, maxGen, mRate, cProb, mode, elitism) {
     //get scores
     currentScores = [];
     currentScores = evaluate(1);
-    sortByScores();
+    sortByScores(eliteSize);
 
 
     ////DISPLAYBESTSCOREROUTE////
     var bestRoute = [];
 
-    for (var j = 0; j < elite.length; j++) {
-        bestRoute.push(cities[elite[j]].getPosition());
+    for (var j = 0; j < elite[0].length; j++) {
+        bestRoute.push(cities[elite[0][j]].getPosition());
     }
     if (displayPath != undefined) {
         displayPath.setMap(null);
@@ -79,23 +81,39 @@ function GA(popsize, maxGen, mRate, cProb, mode, elitism) {
     //select speed
     if (maxGen <= 50) speed = 100;
     else if (maxGen > 50 && maxGen <= 100) speed = 50;
-    else speed = 10;
+    else if (maxGen > 100 && maxGen <= 1000) speed = 10;
+    else speed = 0;
     //launch next turn
-    if (ctr < maxGen) window.setTimeout(function () { GA(popsize, maxGen, mRate, cProb, mode, elitism) }, speed);
+    if (ctr < maxGen && !stop) window.setTimeout(function () { GA(popsize, maxGen, mRate, cProb, mode, elitism,eliteSize) }, speed);
 
     else {
         //end of algorithm, display scores
         eliteScoreGen = currentGen - eliteScoreGenCtr;
         //alert the user that the algorithm stopped
-        document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
-            message: "Finished !"
-        });
+        $("#loadingCircle").css("display","none");
         //alert user at which generation the last best score has been found
         // /!\ may not be the best solution ever found, just the last best.
         var msg = "Last best found on generation: " + eliteScoreGen;
         document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
             message: msg
         });
+
+        if(eliteScore<cookieBest || cookieBest==''){
+            msg = "New best score on this route ! ";
+            document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
+                message: msg
+            });
+            document.cookie = "cookieBest="+eliteScore;
+        }
+        else{
+            msg = "Best score on this route: " + cookieBest;
+            document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
+                message: msg
+            });
+        }
+        //hide stop button
+        $("#stopButton").css("display","none");
+        $("#clearButton").css("display","block");
     }
 }
 
@@ -145,7 +163,7 @@ function evaluate(met) {
 }
 
 //Sort chromosomes by their scores
-function sortByScores() {
+function sortByScores(eliteSize) {
     sortedScores = [];
     for (var i = 0; i < currentScores.length; i++) {
         sortedScores[i] = 0;
@@ -163,9 +181,13 @@ function sortByScores() {
             }
         }
 
-        //Elite Score
-        if (sortedScores[i] == 0) {
-            elite = population[i];
+        //Elite Scores
+        for(var j=0;j<eliteSize;j++){
+            if (sortedScores[i] == j) {
+                elite.push(population[i]);
+            }
+        }
+        if(sortedScores[i]==0){
             //initialise the oldEliteScore buffer
             if (oldEliteScore == undefined) {
                 oldEliteScore = eliteScore;
@@ -190,7 +212,9 @@ function mutate(popsize, mode, elitism, mrate, probCrois) {
     var newPop = [];
     //elitism
     if (elitism) {
-        newPop.push(elite);
+        for(var i=0;i<elite.length;i++){
+            newPop.push(elite[i]);
+        }
     }
 
     //select parents and cross
@@ -356,12 +380,14 @@ function mutateNewPop(newPop, mRate) {
         var rand = Math.floor((Math.random() * 100));
         //if mutation then
         if (rand < mRate.value) {
-            var pos1 = 0;
-            var pos2 = 0;
+            var pos1 = Math.floor((Math.random() * (newPop[i].length - 2)) + 1);
+            var pos2 = Math.floor((Math.random() * (newPop[i].length - 2)) + 1);
             //choose two non identical positions
-            while (pos1 == pos2) {
-                pos1 = Math.floor((Math.random() * (newPop[i].length - 2)) + 1);
-                pos2 = Math.floor((Math.random() * (newPop[i].length - 2)) + 1);
+            if(newPop[i].length>3){
+                while (pos1 == pos2) {
+                    pos1 = Math.floor((Math.random() * (newPop[i].length - 2)) + 1);
+                    pos2 = Math.floor((Math.random() * (newPop[i].length - 2)) + 1);
+                }
             }
             //swap their contents
             var buffer = newPop[i][pos1];
@@ -378,6 +404,8 @@ function placeMarker(position, map) {
 
     //no more than X cities, here 50
     if (cities.length < 50) {
+        //reset best score cookie since the path changes
+        document.cookie = "cookieBest=";
         //remove drawn path if it exists
         if (displayPath != undefined) {
             displayPath.setMap(null);
@@ -389,6 +417,8 @@ function placeMarker(position, map) {
                 map: map
             });
             marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
+            //show clear button
+            $("#clearButton").css("display","block");
         }
         else {
             //if not first
@@ -415,6 +445,12 @@ function placeMarker(position, map) {
             }
             //remove marker from map
             marker.setMap(null);
+            //hide clear button if no more cities
+            if(cities.length==0){
+                $("#clearButton").css("display","none");
+            }
+            //reset best score cookie since the path changes
+            document.cookie = "cookieBest=";
             //remove drawn path if it exists
             if (displayPath != undefined) {
                 displayPath.setMap(null);
@@ -441,7 +477,7 @@ function initMap() {
         zoom: 8,
         center: grenoble,
         mapTypeControl: false,
-        mapTypeId: google.maps.MapTypeId.TERRAIN,
+        //mapTypeId: google.maps.MapTypeId.TERRAIN,
         fullScreenControl: false
     });
     //add click listener to map to place markers and register cities
@@ -453,10 +489,31 @@ function initMap() {
 
 $(document).ready(function () {
     // Handler for .ready() called.
+    //hide stop button
+    $("#stopButton").css("display","none");
+    //hide clear button
+    $("#clearButton").css("display","none");
     //init map.
     initMap();
+    //initialize loading circle (hide it)
+    $("#loadingCircle").css("display","none");
+    $("#stopButton").bind("click", function (e) {
+        stop=true;
+    });
+    $("#clearButton").bind("click", function (e) {
+        for(var i=0;i<cities.length;i++){
+            cities[i].setMap(null);
+        }
+        cities=[];
+        if (displayPath != undefined) {
+            displayPath.setMap(null);
+        }
+        $("#cGenTxt").text("Generation :" );
+        $("#bScoreTxt").text("Best score:");
 
-    $("#start").bind("click", function (e) {
+        $("#clearButton").css("display","none");
+    });
+    $("#startButton").bind("click", function (e) {
         //if settings not filled correctly or not enough cities
         if ($("#popSize").val() == undefined || $("#maxGen").val() == undefined || $("#popSize").val() == '' || $("#maxGen").val() == '' || cities.length < 2) {
             //display error
@@ -465,16 +522,21 @@ $(document).ready(function () {
             });
         }
         else {
+            //show stop button and initialize stop var
+            stop=false;
+            $("#stopButton").css("display","block");
+            //hide clear button
+            $("#clearButton").css("display","none");
             //alert the user that the algorithm starts
-            document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
-                message: "Working ..."
-            });
+            
+            $("#loadingCircle").css("display","block");
+            cookieBest=document.cookie.replace(/(?:(?:^|.*;\s*)cookieBest\s*\=\s*([^;]*).*$)|^.*$/, "$1");
             //hide drawer (and its obfuscator)
             $('.mdl-layout__drawer').toggleClass('is-visible');
             $('.mdl-layout__obfuscator').toggleClass('is-visible');
 
             //start
-            startGA($("#popSize").val(), $("#maxGen").val(), $("#mRate").val(), $("#cProb").val(), $("#switch-mode").is(':checked'), $("#switch-elitism").is(':checked'));
+            startGA($("#popSize").val(), $("#maxGen").val(), $("#mRate").val(), $("#cProb").val(), $("#switch-mode").is(':checked'), $("#switch-elitism").is(':checked'),$("#elitismNum").val());
         }
     });
 });

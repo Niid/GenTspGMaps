@@ -1,15 +1,27 @@
 #map{
-    height: calc(100%);
+    height: 90%;
     width:100%;
     margin:0 auto;
     z-index:1;
 
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
 }
+
+#loadingCircle{
+    position: absolute;
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    width:200px;
+    height:200px;
+    z-index: 2;
+}
 #header {
     text-align: center;
     margin: 0 auto;
-    height: 100px;
+    height: 5%;
     z-index: 11;
     background-image: url("../img/head.jpeg");
     background-size: 100%;
@@ -36,7 +48,7 @@ html, body {
 }
 
 #menu {
-    height: (100%);
+    height: 90%;
 }
 
 #cGen {
@@ -48,6 +60,20 @@ html, body {
     background-color: #FFF;
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
     border-radius: 0%;
+}
+#stopButton {
+    position:fixed;
+    z-index: 2;
+    margin-top: 10px;
+    margin-right: 10px;
+    margin-left: 45%;
+}
+#clearButton {
+    position:fixed;
+    z-index: 2;
+    margin-top: 10px;
+    margin-right: 10px;
+    margin-left: 45%;
 }
 
 #bScore {
@@ -62,7 +88,7 @@ html, body {
 }
 
 .setting {
-    margin-top:10px;
+    margin-top:5px;
     padding:5px 5px 5px 5px;
 }
 
