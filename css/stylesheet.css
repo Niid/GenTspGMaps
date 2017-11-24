@@ -8,6 +8,11 @@
 }
 
 #loadingCircle{
+    width:200px;
+    height:200px;
+    z-index: 3;
+}
+#loadingContainer{
     position: absolute;
     top:0;
     bottom: 0;
@@ -17,6 +22,10 @@
     width:200px;
     height:200px;
     z-index: 2;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+    padding:5px 5px 5px 5px;    
 }
 #header {
     text-align: center;

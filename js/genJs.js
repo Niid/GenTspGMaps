@@ -90,7 +90,7 @@ function GA(popsize, maxGen, mRate, cProb, mode, elitism,eliteSize) {
         //end of algorithm, display scores
         eliteScoreGen = currentGen - eliteScoreGenCtr;
         //alert the user that the algorithm stopped
-        $("#loadingCircle").css("display","none");
+        $("#loadingContainer").css("display","none");
         //alert user at which generation the last best score has been found
         // /!\ may not be the best solution ever found, just the last best.
         var msg = "Last best found on generation: " + eliteScoreGen;
@@ -496,7 +496,7 @@ $(document).ready(function () {
     //init map.
     initMap();
     //initialize loading circle (hide it)
-    $("#loadingCircle").css("display","none");
+    $("#loadingContainer").css("display","none");
     $("#stopButton").bind("click", function (e) {
         stop=true;
     });
@@ -515,10 +515,10 @@ $(document).ready(function () {
     });
     $("#startButton").bind("click", function (e) {
         //if settings not filled correctly or not enough cities
-        if ($("#popSize").val() == undefined || $("#maxGen").val() == undefined || $("#popSize").val() == '' || $("#maxGen").val() == '' || cities.length < 2) {
+        if ($("#popSize").val() == undefined || $("#maxGen").val() == undefined || $("#popSize").val() == '' || $("#maxGen").val() == '' || cities.length < 2 || $("#elitismNum").val() == '' || $("#elitismNum").val() > $("#popSize").val()) {
             //display error
             document.querySelector('#toastCreator').MaterialSnackbar.showSnackbar({
-                message: "please fill population size and max number of generations. Please put at least 2 markers on the map."
+                message: "please fill population size, max number of generations and elitism number. Please put at least 2 markers on the map. Please do not put a bigger number in elitism number than population size"
             });
         }
         else {
@@ -529,7 +529,7 @@ $(document).ready(function () {
             $("#clearButton").css("display","none");
             //alert the user that the algorithm starts
             
-            $("#loadingCircle").css("display","block");
+            $("#loadingContainer").css("display","block");
             cookieBest=document.cookie.replace(/(?:(?:^|.*;\s*)cookieBest\s*\=\s*([^;]*).*$)|^.*$/, "$1");
             //hide drawer (and its obfuscator)
             $('.mdl-layout__drawer').toggleClass('is-visible');
